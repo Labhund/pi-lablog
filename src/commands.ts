@@ -28,12 +28,13 @@ export function registerCommands(pi: ExtensionAPI, api: CommandApi): void {
 				`name:     ${ctx.sessionManager.getSessionName?.() ?? "(untitled)"}`,
 			];
 			if (!marker) {
-				lines.push("capture:  OFF — no .lablog.toml marker found in or above the working directory");
+				lines.push("capture:  OFF — not in a lab project (no .lablog.toml, no git repo under the lab root)");
 				lines.push(`hint:     /lablog:on <project> [lablog-path] to declare this session manually`);
 			} else if (!state || state.disabled) {
 				lines.push(`capture:  OFF (disabled for this session) — project "${marker.project}"`);
 			} else {
-				lines.push(`capture:  ON`);
+				const via = marker.via === "git" ? "auto: git repo under lab root" : marker.via === "declared" ? "declared via /lablog:on" : "explicit .lablog.toml";
+				lines.push(`capture:  ON (${via})`);
 				lines.push(`project:  ${marker.project}`);
 				lines.push(`lablog:   ${marker.lablog}`);
 				lines.push(`week:     ${isoWeek()}`);

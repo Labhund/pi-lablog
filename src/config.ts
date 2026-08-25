@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 /**
  * Lab log project marker. A directory (or any directory under it) containing
@@ -19,11 +19,37 @@ export interface Marker {
 	modelId?: string;
 	passive: boolean;
 	notify: boolean;
+	/** How the project was identified: explicit marker, implicit git rule, or /lablog:on. */
+	via?: "marker" | "git" | "declared";
 }
 
 export const DEFAULT_LABLOG = "/data2/loo_lab/_lablog";
+/** Directories whose git repos are lab projects by default. */
+export const LAB_ROOTS = ["/data2/loo_lab"];
 export const MARKER_FILE = ".lablog.toml";
 
+function isUnderLabRoot(path: string): boolean {
+	return LAB_ROOTS.some((r) => path === r || path.startsWith(r + "/"));
+}
+
+function gitRoot(dir: string): string | undefined {
+	let d = dir;
+	for (let i = 0; i < 16; i++) {
+		if (existsSync(join(d, ".git"))) return d;
+		const parent = dirname(d);
+		if (parent === d) break;
+		d = parent;
+	}
+	return undefined;
+}
+
+/**
+ * Resolve the lab project for a working directory:
+ *  1. explicit .lablog.toml in or above cwd (wins),
+ *  2. implicit rule: cwd is inside a git repo under a lab root
+ *     (project = repo directory name),
+ *  3. otherwise undefined (not lab work).
+ */
 export function findMarker(cwd: string): Marker | undefined {
 	let dir = cwd;
 	for (let i = 0; i < 12; i++) {
@@ -31,7 +57,7 @@ export function findMarker(cwd: string): Marker | undefined {
 		if (existsSync(file)) {
 			try {
 				const m = parseMarker(readFileSync(file, "utf8"));
-				if (m) return m;
+				if (m) return { ...m, via: "marker" };
 			} catch {
 				/* malformed marker: ignore */
 			}
@@ -40,7 +66,10 @@ export function findMarker(cwd: string): Marker | undefined {
 		if (parent === dir) break;
 		dir = parent;
 	}
-	return undefined;
+	if (!isUnderLabRoot(cwd)) return undefined;
+	const root = gitRoot(cwd);
+	if (!root || !isUnderLabRoot(root) || root === DEFAULT_LABLOG) return undefined;
+	return { project: basename(root), lablog: DEFAULT_LABLOG, passive: false, notify: false, via: "git" };
 }
 
 /** Minimal flat-TOML reader: `key = "value"` lines, `#` comments. */

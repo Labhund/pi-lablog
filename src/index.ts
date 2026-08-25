@@ -113,6 +113,7 @@ export default function lablog(pi: ExtensionAPI): void {
 				lablog: lablogPath,
 				passive: false,
 				notify: false,
+				via: "declared",
 			};
 			sc.state =
 				loadState(lablogPath, id) ??
