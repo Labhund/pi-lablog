@@ -1,0 +1,12 @@
+{
+  "name": "pi-lablog",
+  "version": "0.1.0",
+  "description": "Lab log capture extension for pi — scientific re-projection of session observations into a lab-level weekly capture stream.",
+  "type": "module",
+  "license": "MIT",
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}
