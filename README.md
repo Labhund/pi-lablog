@@ -30,7 +30,9 @@ For the Jupynium science workbench it also registers a short-lived receiver in
 `/tmp/pi-jupyter-context/`. The classic Notebook context extension can route an
 explicit cell/selection request to the newest Pi session for the project. Pi
 receives that envelope as a real user message; it is not silently promoted to
-scientific memory.
+scientific memory. See
+[`docs/IMPLEMENTATION_CONTEXT.md`](docs/IMPLEMENTATION_CONTEXT.md) for the
+component map and supplementary origin-session pointer.
 
 ## How projects are detected
 
