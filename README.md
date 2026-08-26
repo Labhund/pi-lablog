@@ -26,6 +26,12 @@ It is deliberately quiet: capture runs in the background after `agent_start` /
 the model call when there isn't enough new activity, and never blocks or breaks
 the session.
 
+For the Jupynium science workbench it also registers a short-lived receiver in
+`/tmp/pi-jupyter-context/`. The classic Notebook context extension can route an
+explicit cell/selection request to the newest Pi session for the project. Pi
+receives that envelope as a real user message; it is not silently promoted to
+scientific memory.
+
 ## How projects are detected
 
 1. **Explicit marker** — a `.lablog.toml` in the project directory or any ancestor of the cwd:

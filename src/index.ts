@@ -2,6 +2,7 @@ import { basename } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { runCapture } from "./capture.js";
 import { DEFAULT_LABLOG, findMarker, type Marker } from "./config.js";
+import { registerNotebookContext } from "./context.js";
 import { registerCommands } from "./commands.js";
 import { loadState, saveState, type SessionState } from "./state.js";
 
@@ -21,6 +22,7 @@ interface SessionCtx {
  * session — into the lab-level weekly capture stream under <lablog>/capture/.
  */
 export default function lablog(pi: ExtensionAPI): void {
+	registerNotebookContext(pi);
 	const sessions = new Map<string, SessionCtx>();
 
 	const key = (ctx: ExtensionContext): string => ctx.sessionManager.getSessionId?.() ?? "default";
