@@ -2,7 +2,11 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const KINDS = ["assertion", "action", "result", "artifact", "note"] as const;
-export type Kind = (typeof KINDS)[number];
+export type ModelKind = (typeof KINDS)[number];
+
+/** kind "shutdown" is written only by the session-shutdown hook, never by the capture model. */
+export const ALL_KINDS = [...KINDS, "shutdown"] as const;
+export type Kind = (typeof ALL_KINDS)[number];
 
 export const MODES = ["exploratory", "canonical"] as const;
 export type Mode = (typeof MODES)[number];

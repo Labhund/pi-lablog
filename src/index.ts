@@ -4,6 +4,7 @@ import { runCapture } from "./capture.js";
 import { DEFAULT_LABLOG, findMarker, type Marker } from "./config.js";
 import { registerNotebookContext } from "./context.js";
 import { registerCommands } from "./commands.js";
+import { registerOrientation, type OrientSession } from "./orient.js";
 import { loadState, saveState, type SessionState } from "./state.js";
 
 interface SessionCtx {
@@ -11,6 +12,9 @@ interface SessionCtx {
 	state: SessionState | undefined;
 	inFlight: boolean;
 	lastError: string | undefined;
+	startedAtMs: number;
+	injected: boolean;
+	shutdownNoted: boolean;
 }
 
 /**
@@ -31,7 +35,7 @@ export default function lablog(pi: ExtensionAPI): void {
 		const id = key(ctx);
 		let sc = sessions.get(id);
 		if (!sc) {
-			sc = { marker: undefined, state: undefined, inFlight: false, lastError: undefined };
+			sc = { marker: undefined, state: undefined, inFlight: false, lastError: undefined, startedAtMs: Date.now(), injected: false, shutdownNoted: false };
 			sessions.set(id, sc);
 		}
 		return sc;
@@ -101,6 +105,24 @@ export default function lablog(pi: ExtensionAPI): void {
 
 	pi.on("agent_start", maybeCapture);
 	pi.on("turn_end", maybeCapture);
+
+	registerOrientation(pi, {
+		get: (ctx): OrientSession | undefined => {
+			const sc = resolve(ctx);
+			if (!sc.marker) return undefined;
+			return {
+				marker: sc.marker,
+				sessionId: key(ctx),
+				records: sc.state?.records ?? 0,
+				startedAtMs: sc.startedAtMs,
+				injected: sc.injected,
+				shutdownNoted: sc.shutdownNoted,
+			};
+		},
+		notify: (ctx, message, type) => {
+			if (ctx.hasUI && ctx.ui) ctx.ui.notify(message, type);
+		},
+	});
 
 	registerCommands(pi, {
 		get: (ctx) => {
